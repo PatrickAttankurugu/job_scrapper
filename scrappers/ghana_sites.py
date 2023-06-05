@@ -1,50 +1,56 @@
 import requests
 from bs4 import BeautifulSoup
+import time
 import json
 
-class GhanaJobSitesScraper:
-    
-    def __init__(self):
-        self.job_sites = {
-            "Jobberman": "https://www.jobberman.com.gh/jobs", # actual URL to be replaced
-            "JobsInGhana": "https://www.jobsinghana.com/jobs" # actual URL to be replaced
+def scrape_jobs(url):
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'}
+    response = requests.get(url, headers=headers)
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    jobs = soup.find_all('div', class_='job') # Replace 'div' and 'job' with actual HTML tag and class
+
+    job_list = []
+    for job in jobs:
+        title = job.find('h2').text # Replace 'h2' with actual HTML tag for job title
+        company = job.find('div', class_='company').text # Replace 'div' and 'company' with actual HTML tag for company
+        location = job.find('div', class_='location').text # Replace 'div' and 'location' with actual HTML tag for location
+        link = job.find('a')['href'] # Replace 'a' with actual HTML tag for job link
+
+        job_dict = {
+            "Title": title,
+            "Company": company,
+            "Location": location,
+            "Link": link
         }
-        self.headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36'}
-        
-    def scrape_site(self, site_name):
-        url = self.job_sites[site_name]
-        response = requests.get(url, headers=self.headers)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        job_postings = soup.find_all('div', class_='jobposting') # replace 'div' and 'jobposting' with actual HTML tag and class
-        
-        jobs = []
 
-        for job in job_postings:
-            job_title = job.find('a').text.strip() # replace 'a' with actual HTML tag for job title
-            company_name = job.find('div', class_='company').text.strip() # replace 'div' and 'company' with actual HTML tag and class for company name
-            location = job.find('div', class_='location').text.strip() # replace 'div' and 'location' with actual HTML tag and class for location
-            job_url = job.find('a')['href'] # replace 'a' with actual HTML tag for job URL
-            
-            job_data = {
-                'title': job_title,
-                'company': company_name,
-                'location': location,
-                'url': job_url
-            }
+        job_list.append(job_dict)
 
-            jobs.append(job_data)
-            
-        return jobs
+    return job_list
 
-    def scrape_all_sites(self):
-        all_jobs = []
+def scrape_all_pages(base_url, num_pages):
+    all_jobs = []
 
-        for site in self.job_sites.keys():
-            all_jobs.extend(self.scrape_site(site))
+    for i in range(1, num_pages + 1):
+        print(f"Scraping page {i}")
+        all_jobs.extend(scrape_jobs(f"{base_url}/page/{i}")) # Update the URL as per the actual pagination URL of the website
+        time.sleep(1) # Delay for 1 second
 
-        return all_jobs
+    with open('jobs.json', 'w') as f:
+        json.dump(all_jobs, f, indent=4)
 
-if __name__ == "__main__":
-    scraper = GhanaJobSitesScraper()
-    jobs = scraper.scrape_all_sites()
-    print(jobs)
+    print("Scraped all jobs and saved to jobs.json")
+
+base_url_jobberman = "https://www.jobberman.com.gh/jobs" # Replace with actual base URL
+num_pages_jobberman = 10 # Replace with the actual number of pages you want to scrape for Jobberman
+
+base_url_jobsinghana = "https://www.jobsinghana.com/jobs" # Replace with actual base URL
+num_pages_jobsinghana = 10 # Replace with the actual number of pages you want to scrape for JobsInGhana
+
+print("Scraping Jobberman")
+scrape_all_pages(base_url_jobberman, num_pages_jobberman)
+time.sleep(5) # Delay for 5 seconds between scraping different websites
+
+print("Scraping JobsInGhana")
+scrape_all_pages(base_url_jobsinghana, num_pages_jobsinghana)
