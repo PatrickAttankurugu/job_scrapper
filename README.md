@@ -1,6 +1,6 @@
 # Job Scraper
 
-Hello, my name is Patrick Attankurugu, a Python, Backend, and AI developer from Ghana, and this is my job scraping project. The motivation behind this project is to automates my job search process by focusing on Python, Backend, and AI development roles in Ghana, Dubai, and remote positions around the world.
+Hello, my name is Patrick Attankurugu, a Python, Backend, and AI developer from Ghana, and this is my job scraping project. The motivation behind this project is to automates my job search process by focusing on Python, Backend, and AI development roles in Ghana and remote positions around the world.
 
 ## Project Overview
 
